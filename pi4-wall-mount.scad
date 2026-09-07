@@ -50,8 +50,8 @@ yfl1 = yfl0 + front_lip_th;     // front lip outer
 plate_h = floor_th + case_h + top_margin;
 xl = -(case_w/2 + side_clear);              // far (-X) edge of the bracket
 xr = case_w/2 + fit + side_lip_th;          // +X edge (includes the side lip)
-fl_x1 = case_w/2;                           // front lip +X end (at USB-side case edge)
-fl_x0 = case_w/2 - front_lip_w - side_lip_th; // -X end, extended by the side-lip thickness
+fl_x1 = xr;                                 // +X end reaches out to meet the side lip
+fl_x0 = case_w/2 - front_lip_w;             // far (-X) end
 cs_depth = (head_d - screw_shank_d)/2 / tan(cs_angle/2);
 screw_z_top = plate_h - top_margin/2;
 
