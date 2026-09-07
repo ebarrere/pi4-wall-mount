@@ -1,0 +1,2 @@
+# render/build artifacts are regenerated from the .scad
+*.stl
