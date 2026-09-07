@@ -21,7 +21,6 @@ fit    = 0.6;    // clearance around the case
 /* ===== BACK PLATE ===== */
 plate_th   = 4;
 top_margin = 16;   // strip above the case (top screws)
-side_clear = 1;    // clearance on the far (-X) side
 
 /* ===== CRADLE ===== */
 floor_th     = 4;
@@ -35,8 +34,11 @@ side_lip_h   = 5;    // its height above the floor
 screw_shank_d = 4.5;
 head_d        = 9.0;
 cs_angle      = 82;
-screw_inset   = 14;
-screw_low_z   = 14;
+// Hole layout on a 25mm lattice so it drops onto Multiboard (25mm tile pitch):
+// two top holes 100mm apart, one low-center hole 50mm below -> all spacings x25.
+screw_grid    = 25;
+screw_top_x   = 50;    // top pair at +/- this (must be a multiple of screw_grid)
+screw_low_dz  = 50;    // low-center hole this far below the top row (multiple of grid)
 
 usb_on_right   = true;   // false = mirror to the other hand
 show_case_ghost = true;
@@ -48,8 +50,8 @@ yc1 = yc0 + case_d;             // case front
 yfl0 = yc1 + fit;               // front lip inner
 yfl1 = yfl0 + front_lip_th;     // front lip outer
 plate_h = floor_th + case_h + top_margin;
-xl = -(case_w/2 + side_clear);              // far (-X) edge of the bracket
 xr = case_w/2 + fit + side_lip_th;          // +X edge (includes the side lip)
+xl = -xr;                                   // symmetric plate -> even screw margins
 fl_x1 = xr;                                 // +X end reaches out to meet the side lip
 fl_x0 = case_w/2 - front_lip_w;             // far (-X) end
 cs_depth = (head_d - screw_shank_d)/2 / tan(cs_angle/2);
@@ -73,13 +75,13 @@ module bracket() {
             box(xl, xr, 0, plate_th, 0, plate_h);                       // back plate
             box(xl, xr, plate_th, yfl1, 0, floor_th);                   // floor
             box(fl_x0, fl_x1, yfl0, yfl1, 0, floor_th + front_lip_h);   // front lip (offset +X)
-            box(case_w/2 + fit, xr, yc0, yc1, 0, floor_th + side_lip_h);// side lip (USB/Ethernet edge)
+            box(case_w/2 + fit, xr, yc0, yfl1, 0, floor_th + side_lip_h);// side lip (extends to meet the front lip)
             fillet_x(-case_w/2, case_w/2, yc0, floor_th, case_chamfer, +1); // back-bottom fillet
             fillet_x(fl_x0, fl_x1,        yc1, floor_th, case_chamfer, -1); // front-bottom fillet
         }
-        cs_hole(xl + screw_inset, screw_z_top);
-        cs_hole(xr - screw_inset, screw_z_top);
-        cs_hole((xl + xr)/2, screw_low_z);
+        cs_hole(-screw_top_x, screw_z_top);
+        cs_hole( screw_top_x, screw_z_top);
+        cs_hole(0, screw_z_top - screw_low_dz);
     }
     if (show_case_ghost)
         %translate([-case_w/2, yc0, floor_th]) cube([case_w, case_d, case_h]);
