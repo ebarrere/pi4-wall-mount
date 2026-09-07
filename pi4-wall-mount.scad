@@ -1,82 +1,89 @@
 // ============================================================================
 // Raspberry Pi 4 case -> wall-mount cradle (ikea-type shelf side wall)
-// Mounted pose: case against the wall, power/HDMI edge UP, held in a bottom
-// cradle (floor + short front lip + low back lip). Back plate screws to the
-// shelf board with countersunk wood screws. Inside 45-deg fillets mate the
-// case's bottom chamfers so it seats flush.
+// Mounted pose: case flat against the wall, power/HDMI edge UP. Held by a floor
+// + short front lip + a side lip along the USB/Ethernet edge. Back plate screws
+// to the shelf board (countersunk). Inside 45-deg fillets mate the case's
+// bottom chamfers.
 //
 // Coords: X = horizontal (along wall), Y = out from wall, Z = up. Units: mm.
+// The USB/Ethernet ("back") edge is the +X side; the case protrusion is on the
+// far (-X) side, so the front lip is offset toward +X to clear it.
+// Set usb_on_right=false to mirror everything to the other hand.
 // ============================================================================
 
 /* ===== CASE (measured, assembled, as mounted) ===== */
 case_w = 108;    // horizontal width against the wall
-case_h = 70;     // vertical height as mounted
-case_d = 35.5;   // depth out from the wall (thickness)
-case_chamfer = 3;// the case's own 45-deg bottom-edge chamfer (MEASURE; drives inside fillets)
-fit    = 0.6;    // clearance around the case in the cradle
+case_h = 70;     // vertical height
+case_d = 35.5;   // depth out from the wall
+case_chamfer = 3;// case's 45-deg bottom-edge chamfer (drives inside fillets; MEASURE)
+fit    = 0.6;    // clearance around the case
 
 /* ===== BACK PLATE ===== */
-plate_th   = 4;    // plate thickness
-top_margin = 16;   // plate strip above the case (carries the top screws)
-side_clear = 1;    // clearance each side of the case
+plate_th   = 4;
+top_margin = 16;   // strip above the case (top screws)
+side_clear = 1;    // clearance on the far (-X) side
 
 /* ===== CRADLE ===== */
-floor_th      = 4;    // bottom shelf thickness
-front_lip_th  = 3;    // front lip thickness
-front_lip_h   = 18;   // front lip height above the floor
-front_lip_w   = 91;   // front lip WIDTH (< case_w, to clear a case protrusion)
-back_lip_th   = 3;    // back lip thickness
-back_lip_h    = 5;    // back lip height above the floor
+floor_th     = 4;
+front_lip_th = 3;
+front_lip_h  = 18;
+front_lip_w  = 91;   // < case_w, offset toward +X to clear the far-side protrusion
+side_lip_th  = 3;    // lip along the USB/Ethernet (+X) edge
+side_lip_h   = 5;    // its height above the floor
 
-/* ===== WOOD SCREWS (countersunk; 1" #8 into ~1.5" board) ===== */
+/* ===== WOOD SCREWS (countersunk; 1" #8) ===== */
 screw_shank_d = 4.5;
 head_d        = 9.0;
-cs_angle      = 82;    // US flat-head taper
-screw_inset   = 14;    // top screws in from the side edges
-screw_low_z   = 14;    // height of the extra low-center screw (behind the Pi)
+cs_angle      = 82;
+screw_inset   = 14;
+screw_low_z   = 14;
 
+usb_on_right   = true;   // false = mirror to the other hand
 show_case_ghost = true;
 $fn = 64;
 
-/* ===== derived Y stations (out from wall) ===== */
-bw   = case_w + 2*side_clear;          // bracket width
-ybl0 = plate_th;                       // back lip inner = plate front
-ybl1 = plate_th + back_lip_th;
-yc0  = ybl1;                           // case back
-yc1  = yc0 + case_d;                   // case front
-yfl0 = yc1 + fit;                      // front lip inner
-yfl1 = yfl0 + front_lip_th;            // front lip outer
-/* ===== Z stations ===== */
+/* ===== derived ===== */
+yc0 = plate_th;                 // case back (flush on plate)
+yc1 = yc0 + case_d;             // case front
+yfl0 = yc1 + fit;               // front lip inner
+yfl1 = yfl0 + front_lip_th;     // front lip outer
 plate_h = floor_th + case_h + top_margin;
+xl = -(case_w/2 + side_clear);              // far (-X) edge of the bracket
+xr = case_w/2 + fit + side_lip_th;          // +X edge (includes the side lip)
+fl_x1 = case_w/2;                           // front lip right end (at +X case edge)
+fl_x0 = case_w/2 - front_lip_w;             // front lip left end
 cs_depth = (head_d - screw_shank_d)/2 / tan(cs_angle/2);
 screw_z_top = plate_h - top_margin/2;
 
-module box(x_w, y0, y1, z0, z1) translate([-x_w/2, y0, z0]) cube([x_w, y1-y0, z1-z0]);
+module box(x0,x1,y0,y1,z0,z1) translate([x0,y0,z0]) cube([x1-x0, y1-y0, z1-z0]);
 
-// 45-deg fillet in a concave corner at (yc,zc). dir=+1 ramp opens toward +Y, -1 toward -Y.
-module fillet(yc, zc, size, width, dir)
-    translate([-width/2, 0, 0]) rotate([90,0,90]) linear_extrude(width)
-        polygon([[yc,zc], [yc + dir*size, zc], [yc, zc+size]]);
+// 45-deg inside fillet along X (concave floor/wall corner), dir=+1 opens +Y
+module fillet_x(x0,x1, yc,zc, size, dir)
+    translate([x0,0,0]) rotate([90,0,90]) linear_extrude(x1-x0)
+        polygon([[yc,zc],[yc+dir*size,zc],[yc,zc+size]]);
 
-module cs_hole(x, z) translate([x, 0, z]) rotate([-90,0,0]) {
+module cs_hole(x,z) translate([x,0,z]) rotate([-90,0,0]) {
     translate([0,0,-1]) cylinder(d=screw_shank_d, h=plate_th+2);
     translate([0,0,plate_th-cs_depth]) cylinder(d1=screw_shank_d, d2=head_d+0.4, h=cs_depth+0.2);
 }
 
-difference() {
-    union() {
-        box(bw, 0,    plate_th, 0, plate_h);                    // back plate
-        box(bw, plate_th, yfl1, 0, floor_th);                  // floor
-        box(bw, ybl0, ybl1, 0, floor_th + back_lip_h);         // back lip (full width)
-        box(front_lip_w, yfl0, yfl1, 0, floor_th + front_lip_h); // front lip (91mm)
-        // inside fillets to mate the case's bottom chamfers
-        fillet(yc0, floor_th, case_chamfer, bw,          +1);  // back-bottom
-        fillet(yc1, floor_th, case_chamfer, front_lip_w, -1);  // front-bottom
+module bracket() {
+    difference() {
+        union() {
+            box(xl, xr, 0, plate_th, 0, plate_h);                       // back plate
+            box(xl, xr, plate_th, yfl1, 0, floor_th);                   // floor
+            box(fl_x0, fl_x1, yfl0, yfl1, 0, floor_th + front_lip_h);   // front lip (offset +X)
+            box(case_w/2 + fit, xr, yc0, yc1, 0, floor_th + side_lip_h);// side lip (USB/Ethernet edge)
+            fillet_x(-case_w/2, case_w/2, yc0, floor_th, case_chamfer, +1); // back-bottom fillet
+            fillet_x(fl_x0, fl_x1,        yc1, floor_th, case_chamfer, -1); // front-bottom fillet
+        }
+        cs_hole(xl + screw_inset, screw_z_top);
+        cs_hole(xr - screw_inset, screw_z_top);
+        cs_hole((xl + xr)/2, screw_low_z);
     }
-    cs_hole(-(bw/2 - screw_inset), screw_z_top);
-    cs_hole( (bw/2 - screw_inset), screw_z_top);
-    cs_hole(0, screw_low_z);                                    // extra low-center
+    if (show_case_ghost)
+        %translate([-case_w/2, yc0, floor_th]) cube([case_w, case_d, case_h]);
 }
 
-if (show_case_ghost)
-    %translate([-case_w/2, yc0, floor_th]) cube([case_w, case_d, case_h]);
+if (usb_on_right) bracket();
+else mirror([1,0,0]) bracket();
