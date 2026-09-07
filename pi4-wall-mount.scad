@@ -77,7 +77,7 @@ module bracket() {
             box(fl_x0, fl_x1, yfl0, yfl1, 0, floor_th + front_lip_h);   // front lip (offset +X)
             box(case_w/2 + fit, xr, yc0, yfl1, 0, floor_th + side_lip_h);// side lip (extends to meet the front lip)
             fillet_x(-case_w/2, case_w/2, yc0, floor_th, case_chamfer, +1); // back-bottom fillet
-            fillet_x(fl_x0, fl_x1,        yc1, floor_th, case_chamfer, -1); // front-bottom fillet
+            fillet_x(fl_x0, fl_x1,        yfl0, floor_th, case_chamfer, -1); // front-bottom fillet (flush to front lip)
         }
         cs_hole(-screw_top_x, screw_z_top);
         cs_hole( screw_top_x, screw_z_top);
