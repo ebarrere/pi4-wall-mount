@@ -15,7 +15,7 @@
 case_w = 108;    // horizontal width against the wall
 case_h = 70;     // vertical height
 case_d = 35.5;   // depth out from the wall
-case_chamfer = 3;// case's 45-deg bottom-edge chamfer (drives inside fillets; MEASURE)
+case_chamfer = 5;// case's 45-deg bottom-edge chamfer (measured); drives inside fillets
 fit    = 0.6;    // clearance around the case
 
 /* ===== BACK PLATE ===== */
@@ -50,8 +50,8 @@ yfl1 = yfl0 + front_lip_th;     // front lip outer
 plate_h = floor_th + case_h + top_margin;
 xl = -(case_w/2 + side_clear);              // far (-X) edge of the bracket
 xr = case_w/2 + fit + side_lip_th;          // +X edge (includes the side lip)
-fl_x1 = case_w/2;                           // front lip right end (at +X case edge)
-fl_x0 = case_w/2 - front_lip_w;             // front lip left end
+fl_x1 = case_w/2;                           // front lip +X end (at USB-side case edge)
+fl_x0 = case_w/2 - front_lip_w - side_lip_th; // -X end, extended by the side-lip thickness
 cs_depth = (head_d - screw_shank_d)/2 / tan(cs_angle/2);
 screw_z_top = plate_h - top_margin/2;
 
