@@ -1,2 +1,3 @@
-# render/build artifacts are regenerated from the .scad
-*.stl
+# .stl intentionally tracked so GitHub renders a 3D preview of the part
+# sliced G-code is a printer-specific build artifact -- not tracked
+*.gcode
